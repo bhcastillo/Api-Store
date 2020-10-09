@@ -35,11 +35,10 @@ export const getAll = async (req: Request, res: Response): Promise<Response> => 
 export const createPurchase = async (req: Request, res: Response): Promise<Response> => {
   const { products, customerId } = req.body;
   const conn = await connect();
-
-  const query = products.forEach(async (product: IPurchase) => {
-    const createPurchaseQuery = await conn.query(`
+  products.forEach(async (product: IPurchase) => {
+    await conn.query(`
           INSERT INTO sold_products (id, customer_id, product_id, quantity, dateCreate) 
-          VALUES (NULL, ${customerId}, ${product.id}, ${product.quantity}, '2020-10-07')`);
+          VALUES (NULL, ${customerId}, ${product.id}, ${product.quantity}, '${dateCreate()}')`);
   });
   return res.status(400).json({ message: 'purchase completed' });
 };
@@ -54,3 +53,7 @@ const bestSellingProduct = async (conn: any) => {
   const bestSeller = JSON.parse(JSON.stringify(bestSellerQuery[0]));
   return bestSeller[0].idProductBestSeller;
 };
+const dateCreate =()=>{
+  const today = new Date();
+  return `${today.getFullYear()}/${today.getMonth()+1}/${today.getDate()}`
+}
