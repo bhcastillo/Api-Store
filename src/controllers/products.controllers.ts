@@ -2,12 +2,7 @@ import { Request, Response } from 'express';
 import { connect } from '../database';
 import { IPurchase } from 'models/customer';
 
-export const getAll = async (req: Request, res: Response): Promise<Response> => {
-  const conn = await connect();
-  const categories = await conn.query('SELECT * FROM categories');
-  const bestSellerId = await bestSellingProduct(conn);
-  const productsQuery = await conn.query(`
-  SELECT 
+const getAllQuery = `SELECT 
     products.id, 
     products.name, 
     concat('[', GROUP_CONCAT(categories.id ORDER BY categories.id ASC SEPARATOR ', ') , ']') AS categories, 
@@ -20,7 +15,12 @@ export const getAll = async (req: Request, res: Response): Promise<Response> => 
   FROM categories 
   INNER JOIN categoriesproducts ON categories.id = categoriesproducts.category_id
   INNER JOIN products ON categoriesproducts.product_id = products.id
-  GROUP BY products.id`);
+  `
+export const getAll = async (req: Request, res: Response): Promise<Response> => {
+  const conn = await connect();
+  const categories = await conn.query('SELECT * FROM categories');
+  const bestSellerId = await bestSellingProduct(conn);
+  const productsQuery = await conn.query(`${getAllQuery} GROUP BY products.id`);
   const products = JSON.parse(JSON.stringify(productsQuery[0]));
   products.forEach((product: any) => {
     product.categories = JSON.parse(product.categories);
@@ -31,6 +31,21 @@ export const getAll = async (req: Request, res: Response): Promise<Response> => 
 
   const query = { categories: categories[0], products: products };
   return res.status(200).json(query);
+};
+export const getProduct = async (req: Request, res: Response): Promise<Response> => {
+  const { id } = req.params
+  if (!id) return res.status(400).json({message:'id not provide'});
+  
+  const conn = await connect();
+  const bestSellerId = await bestSellingProduct(conn);
+  const productsQuery = await conn.query(`${getAllQuery} WHERE products.id =${id} GROUP BY products.id`);
+  const product = JSON.parse(JSON.stringify(productsQuery[0]));
+  product[0].categories = JSON.parse(product[0].categories);
+  product[0].available = product[0].quantity > 0 ? true : false;
+  product[0].bestSeller = bestSellerId === product[0].id ? true : false;
+  delete product[0].quantity;
+
+  return res.status(200).json(product);
 };
 export const createPurchase = async (req: Request, res: Response): Promise<Response> => {
   const { products, customerId } = req.body;
