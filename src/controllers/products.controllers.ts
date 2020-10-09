@@ -1,6 +1,7 @@
-import { json, Request, Response } from 'express';
+import { Request, Response } from 'express';
 import { connect } from '../database';
-import { map } from 'rxjs/operators';
+import { IPurchase } from 'models/customer';
+import { validateCustomerId } from '../middlewares/validatePurchase';
 
 export const getAll = async (req: Request, res: Response): Promise<Response> => {
   const conn = await connect();
@@ -27,8 +28,13 @@ export const getAll = async (req: Request, res: Response): Promise<Response> => 
   return res.status(200).json(query);
 };
 export const createPurchase = async (req: Request, res: Response): Promise<Response> => {
-  const id = req.params.id;
+  const { products, customerId } = req.body;
   const conn = await connect();
-  const product = await conn.query(`SELECT * FROM products WHERE id =${id} `);
-  return res.status(200).json(product[0]);
+
+  const query = products.forEach(async (product: IPurchase) => {
+    const createPurchaseQuery = await conn.query(`
+          INSERT INTO sold_products (id, customer_id, product_id, quantity, dateCreate) 
+          VALUES (NULL, ${customerId}, ${product.id}, ${product.quantity}, '2020-10-07')`);
+  });
+  return res.status(400).json({ message: 'purchase completed' });
 };
