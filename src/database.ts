@@ -1,4 +1,4 @@
-import { createPool } from 'mysql2/promise';
+import { createPool } from "mysql2/promise";
 
 export const connect = async () => {
   return await createPool({
@@ -6,6 +6,6 @@ export const connect = async () => {
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
-    connectionLimit: 10,
+    connectionLimit: 5000,
   });
 };
