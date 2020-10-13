@@ -8,7 +8,7 @@ import productsRoutes from './routes/routes';
 dotenv.config();
 const app: Application = express();
 //Settings
-app.set('PORT', 3000);
+app.set('PORT',process.env.PORT || 3000);
 //Middlewares
 app.use(cors())
 app.use(express.json());

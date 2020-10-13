@@ -12,7 +12,7 @@ const routes_1 = __importDefault(require("./routes/routes"));
 dotenv_1.default.config();
 const app = express_1.default();
 //Settings
-app.set('PORT', 3000);
+app.set('PORT', process.env.PORT || 3000);
 //Middlewares
 app.use(cors_1.default());
 app.use(express_1.default.json());
